@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class MyCubes : MonoBehaviour
 {
-    public bool chungus;
+    public int size;
 }
 
 #if UNITY_EDITOR
@@ -23,10 +23,26 @@ public class CubeEditor : Editor
     bool enabled;
     public override void OnInspectorGUI()
     {
+        var size = serializedObject.FindProperty("size");
+        EditorGUILayout.PropertyField(size);
+        serializedObject.ApplyModifiedProperties();
+
+        if (size.intValue < 0)
+        {
+            EditorGUILayout.HelpBox("The size cannot be less than 0", MessageType.Warning);
+        }
+
         if (GUILayout.Button("Select All Cubes"))
         {
+            //alex code
+            //var allTagCubes = GameObject.FindGameObjectsWithTag("Cube");
+            //Selection.objects = allTagCubes;
+
             var allTagCubes = GameObject.FindGameObjectsWithTag("Cube");
-            Selection.objects = allTagCubes;
+            var allObjectCubes = allTagCubes
+            .Select(enemy => enemy.gameObject)
+            .ToArray();
+            Selection.objects = allObjectCubes;
 
         }
 
@@ -40,9 +56,10 @@ public class CubeEditor : Editor
 
         if (GUILayout.Button("Enable/Disable All Cubes", GUILayout.Height(40)))
         {
-            foreach (var cubes in taggedObjects)
+            foreach (var cubes in GameObject.FindGameObjectsWithTag("Cube"))
             {
-                cubes.SetActive(enabled);
+                Undo.RecordObject(cubes.gameObject, "Enable/Disable All Cubes");
+                cubes.gameObject.SetActive(!cubes.gameObject.activeSelf);
 
                 GUI.color = Color.grey;
             }
